@@ -1,0 +1,77 @@
+---
+- hosts: all
+  become: yes
+  vars:
+    mysql_user: root
+    mysql_password: password
+    replication_user: repl
+    replication_password: repl_password
+  tasks:
+    - name: Install MySQL
+      apt:
+        name: mysql-server
+        state: present
+      tags: mysql
+
+    - name: Configure MySQL server ID and binary log on Master
+      when: "'master' in group_names"
+      blockinfile:
+        path: /etc/mysql/my.cnf
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+        block: |
+          server-id=1
+          log-bin=mysql-bin
+      notify: restart mysql
+      tags: mysql_config
+
+    - name: Configure MySQL server ID on Slave
+      when: "'slave' in group_names"
+      blockinfile:
+        path: /etc/mysql/my.cnf
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+        block: |
+          server-id=2
+      notify: restart mysql
+      tags: mysql_config
+
+    - name: Restart MySQL to apply configuration changes
+      service:
+        name: mysql
+        state: restarted
+      tags: mysql_restart
+
+    - name: Create replication user on Master
+      when: "'master' in group_names"
+      mysql_user:
+        name: "{{ replication_user }}"
+        password: "{{ replication_password }}"
+        host: '%'
+        priv: "*.*:REPLICATION SLAVE"
+        state: present
+      tags: mysql_replication_user
+
+    - name: Get Master status (log file and position)
+      when: "'master' in group_names"
+      mysql_query:
+        login_user: "{{ mysql_user }}"
+        login_password: "{{ mysql_password }}"
+        query: "SHOW MASTER STATUS;"
+      register: master_status
+      tags: mysql_master_status
+
+    - name: Set Master log file and position on Slave
+      when: "'slave' in group_names"
+      mysql_replication:
+        mode: "slave"
+        master_host: "{{ hostvars[groups['master'][0]].ansible_host }}"
+        master_user: "{{ replication_user }}"
+        master_password: "{{ replication_password }}"
+        master_log_file: "{{ hostvars[groups['master'][0]].master_status.query_result[0].File }}"
+        master_log_pos: "{{ hostvars[groups['master'][0]].master_status.query_result[0].Position }}"
+      tags: mysql_slave_config
+
+    - name: Start replication on Slave
+      when: "'slave' in group_names"
+      mysql_replication:
+        mode: start
+      tags: my
