@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        AWS_PROFILE = 'default'
         REGION = 'eu-west-2'
     }
 
