@@ -15,8 +15,6 @@ pipeline {
 
                     script {
                         // Export AWS credentials as Terraform expects them
-                        sh 'echo AWS_ACCESS_KEY_ID:$AWS_ACCESS_KEY_ID' // todo - for testing, remove
-                        sh 'echo AWS_SECRET_ACCESS_KEY:$AWS_SECRET_ACCESS_KEY' // todo - for testing remove
                         env.TF_VAR_aws_access_key = '$AWS_ACCESS_KEY_ID'
                         env.TF_VAR_aws_secret_key = '$AWS_SECRET_ACCESS_KEY'
                     }
