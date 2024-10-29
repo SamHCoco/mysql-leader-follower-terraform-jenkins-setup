@@ -8,11 +8,17 @@ pipeline {
     stages {
         stage('Setup AWS Credentials') {
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials-id']]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                                   accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                                   secretKeyVariable: 'AWS_SECRET_ACCESS_KEY',
+                                   credentialsId: 'aws-credentials-id']]) {
+
                     script {
                         // Export AWS credentials as Terraform expects them
-                        env.TF_VAR_aws_access_key = env.AWS_ACCESS_KEY_ID
-                        env.TF_VAR_aws_secret_key = env.AWS_SECRET_ACCESS_KEY
+                        sh 'echo AWS_ACCESS_KEY_ID:$AWS_ACCESS_KEY_ID' // todo - for testing, remove
+                        sh 'echo AWS_SECRET_ACCESS_KEY:$AWS_SECRET_ACCESS_KEY' // todo - for testing remove
+                        env.TF_VAR_aws_access_key = '$AWS_ACCESS_KEY_ID'
+                        env.TF_VAR_aws_secret_key = '$AWS_SECRET_ACCESS_KEY'
                     }
                 }
             }
