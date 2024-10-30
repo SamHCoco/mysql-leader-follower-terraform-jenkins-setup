@@ -8,35 +8,14 @@ pipeline {
     }
 
     stages {
-        // stage('Setup AWS Credentials') {
-        //     steps {
-        //         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-        //                            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-        //                            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY',
-        //                            credentialsId: 'aws-credentials-id']]) {
-
-        //             script {
-        //                 // Export AWS credentials as Terraform expects them
-        //                 env.TF_VAR_aws_access_key = '$AWS_ACCESS_KEY_ID'
-        //                 env.TF_VAR_aws_secret_key = '$AWS_SECRET_ACCESS_KEY'
-        //             }
-        //         }
-        //     }
-        // }
-
-        stage('Terraform Init') {
+        stage('Create Master Slave DBs') {
             steps {
                 sh 'terraform init'
-            }
-        }
-
-        stage('Terraform Apply') {
-            steps {
                 sh 'terraform apply -auto-approve'
             }
         }
 
-        stage('Retrieve IPs') {
+        stage('Retrieve Master Slave IPs') {
             steps {
                 script {
                     def master_ip = sh(script: 'terraform output -raw master_ip', returnStdout: true).trim()
@@ -47,7 +26,7 @@ pipeline {
             }
         }
 
-        stage('MySQL Replication with Ansible') {
+        stage('Setup Replication') {
             steps {
                 script {
                     writeFile file: 'inventory', text: """
