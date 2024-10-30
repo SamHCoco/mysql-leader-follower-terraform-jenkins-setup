@@ -5,7 +5,6 @@ pipeline {
         REGION = 'eu-west-2'
         AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
-        EC2_PEM = credentials('EC2_PEM')
     }
 
     stages {
