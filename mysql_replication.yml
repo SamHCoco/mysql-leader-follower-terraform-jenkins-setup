@@ -2,17 +2,43 @@
 - hosts: all
   become: yes
   vars:
-    mysql_user: root
-    mysql_password: password
-    replication_user: repl
-    replication_password: repl_password
+    mysql_user: "{{ mysql_user }}"  # MySQL root user from Jenkins credentials
+    mysql_password: "{{ mysql_root_password }}"  # MySQL root password from Jenkins credentials
+    replication_user: "{{ replication_user }}"  # Replication user from Jenkins credentials
+    replication_password: "{{ replication_password }}"  # Replication password from Jenkins credentials
     ansible_python_interpreter: /usr/bin/python3  # Ensures compatibility with Amazon Linux
+
   tasks:
+    - name: Install MySQL Yum repository
+      yum:
+        name: https://dev.mysql.com/get/mysql80-community-release-el7-1.noarch.rpm
+        state: present
+
     - name: Install MySQL
       yum:
-        name: mysql-server
+        name: mysql-community-server
         state: present
       tags: mysql
+
+    - name: Start MySQL service
+      service:
+        name: mysqld
+        state: started
+        enabled: true
+      tags: mysql_start
+
+    - name: Get MySQL default root password
+      command: /usr/bin/mysql_secure_installation --set-root-pass "{{ mysql_password }}"
+      register: mysql_root_pass
+      ignore_errors: yes  # Ignore errors in case mysql_secure_installation runs
+      tags: mysql_secure
+
+    - name: Wait for MySQL to be ready
+      wait_for:
+        port: 3306
+        delay: 10
+        timeout: 60
+      tags: mysql_wait
 
     - name: Configure MySQL server ID and binary log on Master
       when: "'master' in group_names"
