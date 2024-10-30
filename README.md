@@ -1,5 +1,9 @@
 # Jenkins MySQL Setup & Replication Pipeline - Terraform + Ansible for AWS
 
+## Summary
+
+Jenkins pipeline to deploy AWS EC2 instances using Terraform and configure Leader-Follower database replication for MySQL with Ansible.
+
 ## Versions
 
 - **Java:** openjdk17
