@@ -50,6 +50,7 @@ pipeline {
                     sh '''
                     ansible-playbook -i inventory \
                         --private-key $SSH_KEY_FILE \
+                        -vvv \
                         -u $EC2_USER \
                         --extra-vars "mysql_user=$MYSQL_ROOT_USER \
                                       mysql_root_password=$MYSQL_ROOT_PASSWORD \
