@@ -40,7 +40,7 @@ pipeline {
                 }
                 // Use the SSH key stored under ID 'EC2_PEM'
                 withCredentials([sshUserPrivateKey(credentialsId: 'EC2_PEM', keyFileVariable: 'SSH_KEY_FILE', usernameVariable: 'EC2_USER')]) {
-                    sh 'ansible-playbook -i inventory --private-key $EC2_PEM mysql_replication.yml'
+                    sh 'ansible-playbook -i inventory --private-key $SSH_KEY_FILE mysql_replication.yml'
                 }
             }
         }
