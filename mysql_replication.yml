@@ -6,9 +6,10 @@
     mysql_password: password
     replication_user: repl
     replication_password: repl_password
+    ansible_python_interpreter: /usr/bin/python3  # Ensures compatibility with Amazon Linux
   tasks:
     - name: Install MySQL
-      apt:
+      yum:
         name: mysql-server
         state: present
       tags: mysql
@@ -16,7 +17,7 @@
     - name: Configure MySQL server ID and binary log on Master
       when: "'master' in group_names"
       blockinfile:
-        path: /etc/mysql/my.cnf
+        path: /etc/my.cnf
         marker: "# {mark} ANSIBLE MANAGED BLOCK"
         block: |
           server-id=1
@@ -27,7 +28,7 @@
     - name: Configure MySQL server ID on Slave
       when: "'slave' in group_names"
       blockinfile:
-        path: /etc/mysql/my.cnf
+        path: /etc/my.cnf
         marker: "# {mark} ANSIBLE MANAGED BLOCK"
         block: |
           server-id=2
@@ -36,7 +37,7 @@
 
     - name: Restart MySQL to apply configuration changes
       service:
-        name: mysql
+        name: mysqld
         state: restarted
       tags: mysql_restart
 
@@ -74,4 +75,10 @@
       when: "'slave' in group_names"
       mysql_replication:
         mode: start
-      tags: my
+      tags: mysql_slave_start
+
+  handlers:
+    - name: restart mysql
+      service:
+        name: mysqld
+        state: restarted
