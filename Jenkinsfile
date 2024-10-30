@@ -27,6 +27,9 @@ pipeline {
         }
 
         stage('Setup Replication') {
+            environment {
+                ANSIBLE_HOST_KEY_CHECKING = 'False'
+            }
             steps {
                 script {
                     writeFile file: 'inventory', text: """
